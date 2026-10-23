@@ -1,0 +1,5 @@
+# VibeShield & MRU Agent Dependencies
+# Core system runs on Python 3.9+ standard library with no external packages required.
+
+# Optional: Enhanced PDF document reading
+pypdf>=4.0.0

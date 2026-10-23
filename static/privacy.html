@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - VibeShield & MRU</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --panel: #FFFFFF;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #0F172A;
+      --muted: #475569;
+      --accent: #059669;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 32px 16px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 36px 32px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .brand svg { width: 28px; height: 28px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      margin-left: 16px;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    section {
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    p {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    ul {
+      margin-left: 20px;
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+    li { margin-bottom: 6px; }
+    strong { color: var(--text); }
+    footer {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+    @media (max-width: 640px) {
+      .container { padding: 20px 16px; }
+      header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .nav-links { margin-top: 8px; }
+      .nav-links a { margin-left: 0; margin-right: 8px; }
+      footer { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="brand">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M16 3L5 7v8c0 7.5 4.7 13.5 11 15 6.3-1.5 11-7.5 11-15V7L16 3z" fill="#ECFDF5" stroke="#059669" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M11 15.5l3.5 3.5 6.5-6.5" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>VibeShield</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/">MRU Agent</a>
+        <a href="/shield">Security Console</a>
+      </nav>
+    </header>
+
+    <h1>Privacy Policy</h1>
+    <div class="subtitle">Effective Date: October 2026. Academic and Local Verification Architecture.</div>
+
+    <section>
+      <h2>1. Local Processing Architecture</h2>
+      <p>
+        MRU and VibeShield run entirely on your local computer. All uploaded files, chat conversations,
+        audit logs, SQLite database records, and policy incident data remain on your local storage device.
+        No user telemetry, analytics, or background diagnostics are collected or transmitted to external servers.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Web Search Operations</h2>
+      <p>
+        When you explicitly ask the agent to search the web or provide a query starting with "search",
+        the search terms are transmitted directly to DuckDuckGo HTML search.
+        No personal account, API key, or tracking identifier is included in these search queries.
+      </p>
+    </section>
+
+    <section>
+      <h2>3. URL Browsing & Document Retrieval</h2>
+      <p>
+        When you supply a web link (URL) for the agent to inspect, the local backend server process fetches
+        the specified web page directly from the target web host.
+        All network fetches are strictly governed by the VibeShield runtime policy engine:
+      </p>
+      <ul>
+        <li>Non-HTTP schemes (such as file:// or ftp://) are automatically blocked.</li>
+        <li>Private subnets (RFC 1918), loopback addresses, and cloud metadata endpoints (169.254.169.254) are rejected before socket establishment.</li>
+        <li>HTTP redirects are re-evaluated at every hop to prevent Server-Side Request Forgery (SSRF).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Model Inference</h2>
+      <p>
+        When Ollama is installed and active, artificial intelligence model inference takes place
+        100% locally on your computer hardware using open-source weights (such as llama3.2:3b).
+        No prompt text or document content is sent to third-party commercial AI cloud providers.
+        When Ollama is offline, MRU operates in deterministic basic mode without network AI dependencies.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. File Storage & Checkpoints</h2>
+      <p>
+        Files uploaded to the workspace are stored locally in the <code>data/workspace</code> directory.
+        Cryptographic SHA-256 checkpoints are kept locally in <code>data/checkpoint</code> to facilitate
+        runtime self-healing and unauthorized modification rollback.
+      </p>
+    </section>
+
+    <footer>
+      <div>VibeShield Runtime Enforcement - Academic Security Project</div>
+      <div><a href="/terms">Terms and Conditions</a></div>
+    </footer>
+  </div>
+</body>
+</html>

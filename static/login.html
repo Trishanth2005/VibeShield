@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - VibeShield</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --inner: #F1F5F9;
+      --border: #E2E8F0;
+      --border-focus: #059669;
+      --text: #0F172A;
+      --muted: #475569;
+      --dim: #64748B;
+      --accent: #059669;
+      --accent-hover: #047857;
+      --accent-subtle: #ECFDF5;
+      --danger: #DC2626;
+      --danger-subtle: #FEF2F2;
+      --danger-border: #FCA5A5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; color: inherit; }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+      padding: 36px 32px;
+    }
+
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      color: var(--accent);
+    }
+    .brand-icon svg { width: 26px; height: 26px; }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .alert-error {
+      background: var(--danger-subtle);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-error.active {
+      display: flex;
+    }
+    .alert-error svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      transition: border-color 0.15s ease;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    .form-hints {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: var(--dim);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      padding: 11px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      transition: background 0.15s ease;
+    }
+    .btn-submit:hover {
+      background: var(--accent-hover);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .footer-links {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--dim);
+    }
+    .footer-links a {
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .footer-links a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-container">
+  <div class="brand-header">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+    </div>
+    <h1 class="brand-title">VibeShield Console</h1>
+    <p class="brand-sub">Authenticate to access runtime security enforcement</p>
+  </div>
+
+  <div class="alert-error" id="errorBox">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="errorMsg">Invalid username or password</span>
+  </div>
+
+  <form id="loginForm" method="POST" action="/admin/login">
+    <div class="form-group">
+      <label class="form-label" for="username">Username</label>
+      <input class="form-input" type="text" id="username" name="username" placeholder="admin" required autocomplete="username" autofocus>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <input class="form-input" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      <div class="form-hints">
+        <span>Default: admin</span>
+        <span>Password: Admin123</span>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="btnSubmit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      <span>Sign In</span>
+    </button>
+  </form>
+
+  <div class="footer-links">
+    <a href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      <span>MRU Agent</span>
+    </a>
+    <a href="/privacy">Privacy Policy</a>
+  </div>
+</div>
+
+<script>
+  // Check URL parameters for error message
+  const params = new URLSearchParams(window.location.search);
+  const urlError = params.get('error');
+  if (urlError) {
+    const errorBox = document.getElementById('errorBox');
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = urlError;
+    errorBox.classList.add('active');
+  }
+
+  // Handle client-side fetch submit
+  const form = document.getElementById('loginForm');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const errorBox = document.getElementById('errorBox');
+  const errorMsg = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    errorBox.classList.remove('active');
+    btnSubmit.disabled = true;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    fetch('/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ username: username, password: password })
+    }).then(r => {
+      if (r.ok) {
+        return r.json().then(data => {
+          window.location.href = data.redirect || '/shield';
+        });
+      } else {
+        return r.json().then(data => {
+          errorMsg.textContent = data.error || 'Invalid username or password';
+          errorBox.classList.add('active');
+          btnSubmit.disabled = false;
+        }).catch(() => {
+          errorMsg.textContent = 'Invalid username or password';
+          errorBox.classList.add('active');
+          btnSubmit.disabled = false;
+        });
+      }
+    }).catch(err => {
+      errorMsg.textContent = 'Connection error. Please try again.';
+      errorBox.classList.add('active');
+      btnSubmit.disabled = false;
+    });
+  });
+</script>
+</body>
+</html>

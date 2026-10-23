@@ -1,0 +1,4 @@
+Project Status Update
+The team finished the login module this week.
+Testing starts on Monday and the demo is planned for Friday.
+No blockers at the moment.

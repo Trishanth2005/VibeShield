@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRU Agent - Zero-Trust Guarded Assistant</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --sidebar: #FFFFFF;
+      --card: #FFFFFF;
+      --card-hover: #F1F5F9;
+      --inner: #F1F5F9;
+      --border: #E2E8F0;
+      --border-light: #CBD5E1;
+      --text: #0F172A;
+      --muted: #475569;
+      --dim: #64748B;
+      --accent: #059669;
+      --accent-hover: #047857;
+      --accent-subtle: #ECFDF5;
+      --accent-border: #A7F3D0;
+      --danger: #DC2626;
+      --danger-subtle: #FEF2F2;
+      --danger-border: #FCA5A5;
+      --warn: #D97706;
+      --warn-subtle: #FFFBEB;
+      --warn-border: #FDE68A;
+      --info: #0284C7;
+      --info-subtle: #F0F9FF;
+      --info-border: #BAE6FD;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea { font: inherit; color: inherit; }
+    code, pre {
+      font-family: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+      font-size: 12.5px;
+    }
+
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Left Sidebar */
+    aside {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+    .brand-header {
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-logo svg { width: 20px; height: 20px; }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sidebar-content {
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .btn-new-chat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-new-chat:hover { background: var(--accent-hover); }
+    .sidebar-section h4 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+    .file-item:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+    .file-item-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .btn-upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px dashed var(--border-light);
+      color: var(--muted);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+    .btn-upload:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    /* VibeShield Quick Monitor in Sidebar */
+    .shield-quick-card {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .shield-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .shield-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 8px;
+    }
+    .trust-meter {
+      height: 6px;
+      background: #E2E8F0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .trust-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 100%;
+      transition: width 0.3s ease;
+    }
+    .btn-console-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-console-link:hover { text-decoration: underline; }
+
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--dim);
+    }
+    .sidebar-footer a:hover { color: var(--text); }
+
+    /* Main Chat Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg);
+    }
+    header.top-bar {
+      height: 60px;
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    .model-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .model-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .model-indicator.offline {
+      background: var(--warn);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-activity-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-activity-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .activity-badge {
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .btn-admin-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .btn-admin-header:hover {
+      background: var(--accent);
+      color: #FFFFFF;
+    }
+
+    /* Messages Stream */
+    .chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .empty-state {
+      max-width: 580px;
+      margin: auto;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .empty-state h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .empty-state p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .suggestions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .suggestion-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 6px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+    .suggestion-btn:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+    }
+
+    /* Message Bubbles */
+    .msg-wrapper {
+      max-width: 840px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .msg-wrapper.user { align-items: flex-end; }
+    .msg-wrapper.assistant { align-items: flex-start; }
+
+    .bubble {
+      padding: 14px 18px;
+      border-radius: 8px;
+      max-width: 90%;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg-wrapper.user .bubble {
+      background: var(--accent);
+      color: #FFFFFF;
+      font-weight: 500;
+      border-bottom-right-radius: 2px;
+    }
+    .msg-wrapper.assistant .bubble {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 2px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .msg-wrapper.blocked .bubble {
+      border-color: var(--danger);
+      background: var(--danger-subtle);
+      color: var(--danger);
+    }
+
+    .msg-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .chip {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    /* Security Status Line & Expandable Activity */
+    .security-status-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+    .security-status-line.clean { background: var(--accent-subtle); color: var(--accent); border: 1px solid var(--accent-border); }
+    .security-status-line.neutralized { background: var(--warn-subtle); color: var(--warn); border: 1px solid var(--warn-border); }
+    .security-status-line.blocked { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+    .security-status-line.compromised { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+
+    /* Action Result Cards */
+    .action-cards-container {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 90%;
+    }
+    .action-result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .action-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .action-tool-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .action-tool-badge code {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .action-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .action-row {
+      display: flex;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .action-label {
+      color: var(--muted);
+      font-weight: 600;
+      width: 110px;
+      flex-shrink: 0;
+    }
+    .action-value {
+      color: var(--text);
+      flex: 1;
+      word-break: break-word;
+    }
+    .action-value.time {
+      color: var(--dim);
+      font-size: 11.5px;
+    }
+
+    /* Decision Badges */
+    .decision-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .decision-badge.decision-allowed { background: var(--accent-subtle); color: var(--accent); border: 1px solid var(--accent-border); }
+    .decision-badge.decision-sanitized { background: var(--warn-subtle); color: var(--warn); border: 1px solid var(--warn-border); }
+    .decision-badge.decision-redacted { background: var(--warn-subtle); color: var(--warn); border: 1px solid var(--warn-border); }
+    .decision-badge.decision-blocked { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+    .decision-badge.decision-quarantined { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger-border); }
+
+    /* Report Download Group */
+    .report-download-group {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-report-dl {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-subtle);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .btn-report-dl:hover {
+      background: var(--accent);
+      color: #FFFFFF;
+    }
+
+    details.activity-details {
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: var(--muted);
+      width: 100%;
+      max-width: 90%;
+    }
+    details.activity-details summary {
+      cursor: pointer;
+      font-weight: 600;
+      padding: 4px 0;
+      user-select: none;
+    }
+    details.activity-details summary:hover { color: var(--text); }
+    .activity-log {
+      margin-top: 6px;
+      background: var(--inner);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .activity-row {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .act-tag {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      width: 80px;
+      flex-shrink: 0;
+      text-align: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+    .act-tag.observe { color: var(--info); border-color: var(--info); }
+    .act-tag.policy { color: var(--danger); border-color: var(--danger); }
+    .act-tag.remediation { color: var(--warn); border-color: var(--warn); }
+    .act-tag.self_heal { color: var(--accent); border-color: var(--accent); }
+    .act-tag.allowed { color: var(--accent); border-color: var(--accent); }
+
+    /* Composer Area */
+    .composer-area {
+      padding: 16px 24px 20px;
+      background: var(--sidebar);
+      border-top: 1px solid var(--border);
+    }
+    .composer-box {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s ease;
+    }
+    .composer-box.drag-over {
+      border-color: var(--accent);
+      background: var(--inner);
+    }
+    .attached-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .attached-chip {
+      background: var(--inner);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .attached-chip button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .attached-chip button:hover { color: var(--danger); }
+    textarea#chatInput {
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      background: transparent;
+      color: var(--text);
+      max-height: 160px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .composer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon:hover {
+      color: var(--text);
+      background: var(--inner);
+    }
+    .btn-send {
+      background: var(--accent);
+      color: #FFFFFF;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+    .btn-send:hover { background: var(--accent-hover); }
+    .btn-send:disabled { opacity: 0.5; cursor: default; }
+
+    /* Toast Notification */
+    .toast {
+      position: absolute;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+      display: none;
+      z-index: 50;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-low { background: var(--accent-subtle); color: var(--accent); border: 1px solid var(--accent); }
+    .badge-medium { background: var(--warn-subtle); color: var(--warn); border: 1px solid var(--warn); }
+
+    /* Slide-over Activity Panel */
+    .activity-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: var(--sidebar);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 16px rgba(15, 23, 42, 0.08);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.25s ease;
+    }
+    .activity-drawer.open {
+      right: 0;
+    }
+    .activity-drawer-header {
+      height: 60px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .activity-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .drawer-empty-msg {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 40px 16px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .app-shell { flex-direction: column; }
+      aside { width: 100%; height: auto; max-height: 40vh; }
+      header.top-bar { padding: 0 16px; }
+      .chat-scroll { padding: 16px; }
+      .composer-area { padding: 12px 16px; }
+      .activity-drawer { width: 100%; right: -100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell" id="appShell">
+  <!-- Left Sidebar -->
+  <aside>
+    <div class="brand-header">
+      <div class="brand-logo">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M16 3L5 7v8c0 7.5 4.7 13.5 11 15 6.3-1.5 11-7.5 11-15V7L16 3z" fill="#ECFDF5" stroke="#059669" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M11 15.5l3.5 3.5 6.5-6.5" stroke="#059669" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">MRU Agent</div>
+        <div class="brand-sub">Guarded by VibeShield</div>
+      </div>
+    </div>
+
+    <div class="sidebar-content">
+      <button class="btn-new-chat" onclick="startNewChat()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New Conversation</span>
+      </button>
+
+      <!-- Workspace Files -->
+      <div class="sidebar-section">
+        <h4>Workspace Files</h4>
+        <div class="file-list" id="sidebarFileList">
+          <div style="color:var(--muted); font-size:12px;">Loading workspace...</div>
+        </div>
+        <button class="btn-upload" onclick="document.getElementById('hiddenFileInput').click()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span>Upload File (Max 5 MB)</span>
+        </button>
+      </div>
+
+      <!-- Security Quick Monitor -->
+      <div class="shield-quick-card">
+        <div class="shield-header">
+          <span>Runtime Enforcement</span>
+          <span class="badge badge-low" id="quickModeBadge">ENFORCE</span>
+        </div>
+        <div class="shield-toggle-row">
+          <span style="color:var(--muted)">Session Trust:</span>
+          <strong id="quickTrustVal">100%</strong>
+        </div>
+        <div class="trust-meter">
+          <div class="trust-fill" id="quickTrustFill"></div>
+        </div>
+        <a href="/shield" class="btn-console-link">
+          <span>Open Security Console</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms</a>
+    </div>
+  </aside>
+
+  <!-- Main Chat Column -->
+  <main>
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="font-weight:700; font-size:15px;">Conversation</div>
+        <div class="model-badge">
+          <span class="model-indicator" id="modelDot"></span>
+          <span id="activeModelLabel">Checking model status...</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn-activity-toggle" id="btnActivityToggle" onclick="toggleActivityPanel()" title="View all actions in this session">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>Activity</span>
+          <span class="activity-badge" id="activityCountBadge">0</span>
+        </button>
+        <a href="/shield" class="btn-admin-header" title="Open Administrator Console">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <span>Admin Dashboard</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="toast" id="toastBox">Notification message</div>
+
+    <!-- Messages Container -->
+    <div class="chat-scroll" id="chatMessages">
+      <div class="empty-state" id="emptyState">
+        <h2>How can MRU assist you today?</h2>
+        <p>Attach documents (.txt, .md, .docx, .pdf), paste web links for inspection, or query DuckDuckGo for live facts. Every tool execution is evaluated by VibeShield zero-trust security.</p>
+        <div class="suggestions">
+          <button class="suggestion-btn" onclick="populatePrompt('generate a security report')">
+            Generate a full session security audit report
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('Summarize http://localhost:8000/sandbox/pages/clean.html')">
+            Inspect sandboxed research summary on Zero-Trust Architecture
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('List my workspace files')">
+            List all accessible files in the local workspace directory
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('search latest developments in AI runtime security')">
+            Search DuckDuckGo for live AI runtime security research
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Composer Box -->
+    <div class="composer-area">
+      <div class="composer-box" id="composerBox">
+        <div class="attached-chips" id="attachedChips"></div>
+        <textarea id="chatInput" rows="1" placeholder="Type a message, paste a URL, or ask to generate a security report..."></textarea>
+        <div class="composer-bar">
+          <div style="display:flex; gap:6px;">
+            <button class="btn-icon" title="Attach file" onclick="document.getElementById('hiddenFileInput').click()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+          </div>
+          <button class="btn-send" id="btnSend" onclick="sendMessage()">
+            <span>Send</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Slide-over Activity Panel -->
+  <div class="activity-drawer" id="activityDrawer">
+    <div class="activity-drawer-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span style="font-weight:700; font-size:15px;">Session Activity Log</span>
+      </div>
+      <button class="btn-icon" onclick="toggleActivityPanel()" title="Close panel" style="font-size:18px;">&times;</button>
+    </div>
+    <div class="activity-drawer-body" id="activityDrawerList">
+      <div class="drawer-empty-msg">
+        No actions recorded in this session yet. Execute prompts or query tools to observe real-time policy evaluation.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden File Upload Input -->
+<input type="file" id="hiddenFileInput" multiple hidden accept=".txt,.md,.csv,.json,.py,.js,.html,.css,.log,.xml,.docx,.pdf">
+
+<script>
+  let chatHistory = [];
+  let attachedFiles = [];
+  let isSending = false;
+  let sessionState = { trust: 100, enforcement_mode: 'enforce' };
+  let sessionActions = [];
+
+  function showToast(msg) {
+    const t = document.getElementById('toastBox');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  function toggleActivityPanel() {
+    const drawer = document.getElementById('activityDrawer');
+    drawer.classList.toggle('open');
+  }
+
+  function populatePrompt(text) {
+    const inp = document.getElementById('chatInput');
+    inp.value = text;
+    inp.focus();
+    autoResizeTextarea(inp);
+  }
+
+  function startNewChat() {
+    chatHistory = [];
+    attachedFiles = [];
+    sessionActions = [];
+    updateActivityUI();
+    renderChips();
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = `
+      <div class="empty-state" id="emptyState">
+        <h2>How can MRU assist you today?</h2>
+        <p>Attach documents (.txt, .md, .docx, .pdf), paste web links for inspection, or query DuckDuckGo for live facts. Every tool execution is evaluated by VibeShield zero-trust security.</p>
+        <div class="suggestions">
+          <button class="suggestion-btn" onclick="populatePrompt('generate a security report')">
+            Generate a full session security audit report
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('Summarize http://localhost:8000/sandbox/pages/clean.html')">
+            Inspect sandboxed research summary on Zero-Trust Architecture
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('List my workspace files')">
+            List all accessible files in the local workspace directory
+          </button>
+          <button class="suggestion-btn" onclick="populatePrompt('search latest developments in AI runtime security')">
+            Search DuckDuckGo for live AI runtime security research
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function autoResizeTextarea(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  const chatInp = document.getElementById('chatInput');
+  chatInp.addEventListener('input', function() { autoResizeTextarea(this); });
+  chatInp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Attach chip rendering
+  function renderChips() {
+    const container = document.getElementById('attachedChips');
+    container.innerHTML = '';
+    attachedFiles.forEach((f, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'attached-chip';
+      chip.innerHTML = `
+        <span>${f}</span>
+        <button onclick="removeAttachedFile(${idx})">&times;</button>
+      `;
+      container.appendChild(chip);
+    });
+  }
+
+  function removeAttachedFile(idx) {
+    attachedFiles.splice(idx, 1);
+    renderChips();
+  }
+
+  function attachWorkspaceFile(fname) {
+    if (attachedFiles.indexOf(fname) < 0) {
+      attachedFiles.push(fname);
+      renderChips();
+      showToast(`Attached ${fname}`);
+    }
+  }
+
+  // Load files
+  function loadWorkspaceFiles() {
+    fetch('/api/files').then(r => r.json()).then(files => {
+      const list = document.getElementById('sidebarFileList');
+      list.innerHTML = '';
+      if (!files.length) {
+        list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Workspace is empty</div>';
+        return;
+      }
+      files.forEach(f => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.title = 'Click to attach to prompt';
+        item.innerHTML = `
+          <span class="file-item-name">${f.name}</span>
+          <span style="color:var(--dim); font-size:11px;">${Math.round(f.size / 1024)} KB</span>
+        `;
+        item.onclick = () => attachWorkspaceFile(f.name);
+        list.appendChild(item);
+      });
+    }).catch(() => {});
+  }
+
+  // File Upload
+  function uploadFile(file) {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(`File ${file.name} exceeds the 5 MB upload limit.`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function() {
+      const base64Data = reader.result.split(',')[1];
+      fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: file.name, data: base64Data })
+      }).then(r => r.json()).then(res => {
+        if (res.name) {
+          attachWorkspaceFile(res.name);
+          loadWorkspaceFiles();
+          showToast(`Uploaded ${res.name}`);
+        } else if (res.error) {
+          showToast(`Upload failed: ${res.error}`);
+        }
+      }).catch(err => {
+        showToast(`Upload failed: ${err}`);
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('hiddenFileInput').addEventListener('change', function() {
+    Array.from(this.files).forEach(uploadFile);
+    this.value = '';
+  });
+
+  // Drag and drop upload
+  const composer = document.getElementById('composerBox');
+  const appShell = document.getElementById('appShell');
+  ['dragenter', 'dragover'].forEach(ev => {
+    appShell.addEventListener(ev, e => { e.preventDefault(); composer.classList.add('drag-over'); });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    appShell.addEventListener(ev, e => { e.preventDefault(); composer.classList.remove('drag-over'); });
+  });
+  appShell.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files) {
+      Array.from(e.dataTransfer.files).forEach(uploadFile);
+    }
+  });
+
+  // Update Trust UI
+  function updateTrustUI(s) {
+    if (!s) return;
+    sessionState = s;
+    document.getElementById('quickTrustVal').textContent = s.trust + '%';
+    const fill = document.getElementById('quickTrustFill');
+    fill.style.width = s.trust + '%';
+    if (s.trust < 40) fill.style.background = 'var(--danger)';
+    else if (s.trust < 70) fill.style.background = 'var(--warn)';
+    else fill.style.background = 'var(--accent)';
+
+    const modeBadge = document.getElementById('quickModeBadge');
+    modeBadge.textContent = (s.enforcement_mode || 'enforce').toUpperCase();
+    modeBadge.className = 'badge ' + (s.enforcement_mode === 'audit' ? 'badge-medium' : 'badge-low');
+  }
+
+  function loadStatus() {
+    fetch('/api/status').then(r => r.json()).then(st => {
+      const lbl = document.getElementById('activeModelLabel');
+      const dot = document.getElementById('modelDot');
+      if (st.ollama) {
+        lbl.textContent = `Model: ${st.model} (local)`;
+        dot.className = 'model-indicator';
+      } else {
+        lbl.textContent = `Basic mode: Ollama is offline`;
+        dot.className = 'model-indicator offline';
+      }
+    }).catch(() => {
+      document.getElementById('activeModelLabel').textContent = 'Server offline';
+    });
+
+    fetch('/api/state').then(r => r.json()).then(updateTrustUI).catch(() => {});
+  }
+
+  // Update Activity Drawer UI
+  function updateActivityUI() {
+    const badge = document.getElementById('activityCountBadge');
+    badge.textContent = sessionActions.length;
+
+    const list = document.getElementById('activityDrawerList');
+    if (!sessionActions.length) {
+      list.innerHTML = `
+        <div class="drawer-empty-msg">
+          No actions recorded in this session yet. Execute prompts or query tools to observe real-time policy evaluation.
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = sessionActions.map((act, idx) => `
+      <div class="action-result-card">
+        <div class="action-card-header">
+          <div class="action-tool-badge">
+            <span style="color:var(--dim); font-size:11px;">#${sessionActions.length - idx}</span>
+            <code>${escapeHtml(act.tool)}</code>
+          </div>
+          <span class="decision-badge decision-${escapeHtml(act.decision)}">${escapeHtml(act.decision)}</span>
+        </div>
+        <div class="action-card-body">
+          <div class="action-row">
+            <span class="action-label">Target:</span>
+            <span class="action-value"><code>${escapeHtml(act.target || 'N/A')}</code></span>
+          </div>
+          <div class="action-row">
+            <span class="action-label">Decision Reason:</span>
+            <span class="action-value">${escapeHtml(act.reason || 'None')}</span>
+          </div>
+          <div class="action-row">
+            <span class="action-label">Timestamp:</span>
+            <span class="action-value time">${escapeHtml(act.time || '')}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Send message
+  function sendMessage() {
+    const text = chatInp.value.trim();
+    if (isSending || (!text && !attachedFiles.length)) return;
+
+    const taskText = text || 'Summarize the attached file(s).';
+    const sentFiles = attachedFiles.slice();
+    chatInp.value = '';
+    attachedFiles = [];
+    renderChips();
+    autoResizeTextarea(chatInp);
+
+    // Remove empty state
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.remove();
+
+    const container = document.getElementById('chatMessages');
+
+    // Append user message
+    const userWrap = document.createElement('div');
+    userWrap.className = 'msg-wrapper user';
+    let chipsHtml = '';
+    if (sentFiles.length) {
+      chipsHtml = `<div class="msg-chips">${sentFiles.map(f => `<span class="chip">${f}</span>`).join('')}</div>`;
+    }
+    userWrap.innerHTML = `
+      <div class="bubble">${escapeHtml(taskText)}</div>
+      ${chipsHtml}
+    `;
+    container.appendChild(userWrap);
+
+    // Append loading placeholder
+    const loadingWrap = document.createElement('div');
+    loadingWrap.className = 'msg-wrapper assistant';
+    loadingWrap.innerHTML = `<div class="bubble" style="color:var(--muted)">Processing action through VibeShield zero-trust pipeline...</div>`;
+    container.appendChild(loadingWrap);
+    container.scrollTop = container.scrollHeight;
+
+    isSending = true;
+    document.getElementById('btnSend').disabled = true;
+
+    fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        task: taskText,
+        files: sentFiles,
+        chat: chatHistory,
+        enforcement_mode: sessionState.enforcement_mode,
+        self_healing: sessionState.self_healing
+      })
+    }).then(r => r.json()).then(res => {
+      renderAssistantResponse(loadingWrap, res, taskText);
+      updateTrustUI(res.state);
+      loadWorkspaceFiles();
+    }).catch(err => {
+      loadingWrap.innerHTML = `<div class="bubble" style="color:var(--danger)">Connection failure: Unable to reach local server. Start it with: python server.py</div>`;
+    }).finally(() => {
+      isSending = false;
+      document.getElementById('btnSend').disabled = false;
+    });
+  }
+
+  function renderAssistantResponse(targetWrap, res, userTask) {
+    targetWrap.className = 'msg-wrapper assistant' + (res.blocked ? ' blocked' : '');
+
+    // Status line mapping
+    let statusClass = 'clean';
+    if (res.blocked) statusClass = 'blocked';
+    else if (res.verdict === 'neutralized') statusClass = 'neutralized';
+    else if (res.verdict === 'compromised') statusClass = 'compromised';
+
+    // Track executed actions into session activity
+    const actions = res.actions || [];
+    actions.forEach(a => {
+      sessionActions.unshift(a);
+    });
+    updateActivityUI();
+
+    // Render Action Result Cards under the reply
+    let actionCardsHtml = '';
+    if (actions.length > 0) {
+      const cards = actions.map(a => `
+        <div class="action-result-card">
+          <div class="action-card-header">
+            <div class="action-tool-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+              <span>Tool:</span>
+              <code>${escapeHtml(a.tool)}</code>
+            </div>
+            <span class="decision-badge decision-${escapeHtml(a.decision)}">${escapeHtml(a.decision)}</span>
+          </div>
+          <div class="action-card-body">
+            <div class="action-row">
+              <span class="action-label">Target:</span>
+              <span class="action-value"><code>${escapeHtml(a.target || 'N/A')}</code></span>
+            </div>
+            <div class="action-row">
+              <span class="action-label">Policy Reason:</span>
+              <span class="action-value">${escapeHtml(a.reason || 'None')}</span>
+            </div>
+            <div class="action-row">
+              <span class="action-label">Time:</span>
+              <span class="action-value time">${escapeHtml(a.time || '')}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      actionCardsHtml = `<div class="action-cards-container">${cards}</div>`;
+    }
+
+    // Check if security report was generated
+    let reportDlHtml = '';
+    const hasReportAction = actions.some(a => a.tool === 'generate_report');
+    const answerHasReport = res.answer && res.answer.includes('Security Audit Report');
+    if (hasReportAction || answerHasReport) {
+      reportDlHtml = `
+        <div class="report-download-group">
+          <a href="/api/report/download?format=html" class="btn-report-dl" download="vibeshield_security_report.html">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <span>Download HTML Report</span>
+          </a>
+          <a href="/api/report/download?format=txt" class="btn-report-dl" download="vibeshield_security_report.txt">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <span>Download TXT Report</span>
+          </a>
+        </div>
+      `;
+    }
+
+    // Pipeline activity details
+    let activityHtml = '';
+    if (res.events && res.events.length > 0) {
+      const rows = res.events.map(e => `
+        <div class="activity-row">
+          <span class="act-tag ${e.stage}">${e.stage}</span>
+          <div style="flex:1;"><strong>${e.src}:</strong> ${escapeHtml(e.msg)}</div>
+        </div>
+      `).join('');
+
+      activityHtml = `
+        <details class="activity-details">
+          <summary>Agent activity (${res.events.length} pipeline steps)</summary>
+          <div class="activity-log">${rows}</div>
+        </details>
+      `;
+    }
+
+    targetWrap.innerHTML = `
+      <div class="bubble">${escapeHtml(res.answer)}</div>
+      <div class="security-status-line ${statusClass}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>${escapeHtml(res.status_line || 'Runtime Enforcement: Evaluated')}</span>
+      </div>
+      ${actionCardsHtml}
+      ${reportDlHtml}
+      ${activityHtml}
+    `;
+
+    chatHistory.push({ role: 'user', content: userTask });
+    chatHistory.push({ role: 'assistant', content: res.answer });
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  // Init
+  loadStatus();
+  loadWorkspaceFiles();
+  updateActivityUI();
+</script>
+</body>
+</html>

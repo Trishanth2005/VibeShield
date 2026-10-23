@@ -1,0 +1,36 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# SQLite databases & WAL logs (generated dynamically at runtime)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/checkpoint/
+data/workspace/
+data/private/
+*.db
+*.db-shm
+*.db-wal
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE & editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary reports
+vibeshield_security_report.*
