@@ -339,7 +339,9 @@ class VibeShieldRequestHandler(BaseHTTPRequestHandler):
         # Concise logging format for development
         pass
 
-def start_server(port: int = 8000):
+def start_server(port: int = None):
+    if port is None:
+        port = int(os.environ.get("PORT", 8000))
     db.init()
     tools.seed()
     server_address = ("0.0.0.0", port)
@@ -358,4 +360,4 @@ def start_server(port: int = 8000):
         httpd.server_close()
 
 if __name__ == "__main__":
-    start_server(8000)
+    start_server()
